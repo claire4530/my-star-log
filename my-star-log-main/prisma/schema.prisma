@@ -1,0 +1,33 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL") // Vercel 自動生成的環境變數
+  directUrl = env("POSTGRES_URL")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  imageUrl  String?
+  type      String
+  location  String?
+  mood      String?
+  
+  // 新增這行：記錄使用者選擇的日期 (如果沒選就預設為當下)
+  eventDate DateTime @default(now())
+  
+  createdAt DateTime @default(now()) // 這行保留，記錄「建立這筆資料的時間」
+
+  color     String?
+}
+
+model SiteConfig {
+  id          Int    @id @default(1)
+  themeColor  String @default("#ec4899") // 預設粉色
+  coverImage  String @default("https://images.unsplash.com/photo-1492684223066-81342ee5ff30")
+}
