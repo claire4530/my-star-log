@@ -14,10 +14,14 @@ model Post {
   title     String
   content   String?
   imageUrl  String?
-  type      String   // 'timeline' 或 'wallet'
-  location  String?  // 座位或地點
+  type      String
+  location  String?
   mood      String?
-  createdAt DateTime @default(now())
+  
+  // 新增這行：記錄使用者選擇的日期 (如果沒選就預設為當下)
+  eventDate DateTime @default(now())
+  
+  createdAt DateTime @default(now()) // 這行保留，記錄「建立這筆資料的時間」
 }
 
 model SiteConfig {

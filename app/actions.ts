@@ -9,16 +9,21 @@ import { revalidatePath } from 'next/cache';
 export async function createPost(formData: FormData) {
   const title = formData.get('title') as string;
   const content = formData.get('content') as string;
-  const type = formData.get('type') as string; // 'timeline' or 'wallet'
+  const type = formData.get('type') as string;
   const location = formData.get('location') as string;
   const imageFile = formData.get('image') as File;
+  
+  // 1. 獲取日期字串
+  const dateStr = formData.get('eventDate') as string;
+  // 2. 轉換為 Date 物件 (如果使用者沒選，就用現在時間)
+  const eventDate = dateStr ? new Date(dateStr) : new Date();
 
   let imageUrl = null;
 
-  // 如果有上傳圖片，傳到 Vercel Blob
   if (imageFile && imageFile.size > 0) {
     const blob = await put(imageFile.name, imageFile, {
       access: 'public',
+      addRandomSuffix: true,
     });
     imageUrl = blob.url;
   }
@@ -30,11 +35,12 @@ export async function createPost(formData: FormData) {
       type,
       location,
       imageUrl,
-      mood: '😍', // 暫時寫死，你可以自己擴充
+      eventDate, // 3. 寫入資料庫
+      mood: '😍',
     },
   });
 
-  revalidatePath('/'); // 通知首頁更新數據
+  revalidatePath('/');
 }
 
 // 2. 更新主題設定 (顏色/封面)
@@ -58,4 +64,16 @@ export async function updateConfig(formData: FormData) {
   });
 
   revalidatePath('/');
+}
+
+// 新增：刪除貼文
+export async function deletePost(id: string) {
+  try {
+    await prisma.post.delete({
+      where: { id },
+    });
+    revalidatePath('/'); // 通知前端更新
+  } catch (error) {
+    console.error("Delete failed:", error);
+  }
 }
