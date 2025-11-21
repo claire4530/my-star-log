@@ -1,0 +1,27 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL") // Vercel 自動生成的環境變數
+  directUrl = env("POSTGRES_URL")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  imageUrl  String?
+  type      String   // 'timeline' 或 'wallet'
+  location  String?  // 座位或地點
+  mood      String?
+  createdAt DateTime @default(now())
+}
+
+model SiteConfig {
+  id          Int    @id @default(1)
+  themeColor  String @default("#ec4899") // 預設粉色
+  coverImage  String @default("https://images.unsplash.com/photo-1492684223066-81342ee5ff30")
+}
