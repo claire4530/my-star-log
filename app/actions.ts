@@ -12,11 +12,11 @@ export async function createPost(formData: FormData) {
   const type = formData.get('type') as string;
   const location = formData.get('location') as string;
   const imageFile = formData.get('image') as File;
-  
-  // 1. 獲取日期字串
   const dateStr = formData.get('eventDate') as string;
-  // 2. 轉換為 Date 物件 (如果使用者沒選，就用現在時間)
   const eventDate = dateStr ? new Date(dateStr) : new Date();
+  
+  // 1. 獲取顏色 (如果沒選，就存 null)
+  const color = formData.get('color') as string;
 
   let imageUrl = null;
 
@@ -35,7 +35,8 @@ export async function createPost(formData: FormData) {
       type,
       location,
       imageUrl,
-      eventDate, // 3. 寫入資料庫
+      eventDate,
+      color, // 2. 存入資料庫
       mood: '😍',
     },
   });

@@ -22,6 +22,8 @@ model Post {
   eventDate DateTime @default(now())
   
   createdAt DateTime @default(now()) // 這行保留，記錄「建立這筆資料的時間」
+
+  color     String?
 }
 
 model SiteConfig {
