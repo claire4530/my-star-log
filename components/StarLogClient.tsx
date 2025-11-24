@@ -184,11 +184,11 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
                         )}
                         </AnimatePresence>
 
-                        <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 transition-all duration-300`}>
+                        <div className={`bg-white rounded-2xl overflow-hidden shadow-[0_5px_15px_rgba(0,0,0,0.1),0_-5px_15px_rgba(0,0,0,0.1)]  transition-all duration-300`}>
                             {activeTab === 'wallet' ? (
                                 // --- 修改後的票根樣式 (三欄位資訊) ---
                                 <div className="flex bg-white items-stretch">
-                                    <div className="flex-1 p-4 pr-5 border-r-2 border-dashed border-slate-100 relative flex flex-col justify-center ">
+                                    <div className="flex-1 p-4 pr-5 border-r-2 border-dashed border-slate-200 relative flex flex-col justify-center ">
                                         <div className="absolute -right-[7px] -top-[7px] w-3 h-3 bg-white rounded-full z-10 border-l border-b border-slate-100/50"></div>
                                         <div className="absolute -right-[7px] -bottom-[7px] w-3 h-3 bg-white rounded-full z-10 border-l border-t border-slate-100/50"></div>
                                         
@@ -213,13 +213,13 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
                                     {/* 右側：區域 + 座位 */}
                                     <div className="min-w-[5.5rem] flex flex-col shrink-0">
                                         {/* 上半部：區域 (ZONE) */}
-                                        <div className="flex-1 flex flex-col justify-center items-center px-1 border-b border-white/50" style={{ backgroundColor: `${ticketColor}10` }}>
+                                        <div className="flex-1 flex flex-col justify-center items-center px-1 border-b border-white/50" style={{ backgroundColor: `${ticketColor}20` }}>
                                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest opacity-80 mb-0.5">ZONE</span>
                                             <span className="text-sm font-bold text-slate-700 text-center leading-tight">{zoneDisplay}</span>
                                         </div>
                                         
                                         {/* 下半部：座位 (SEAT) */}
-                                        <div className="flex-[1.2] flex flex-col justify-center items-center px-1" style={{ backgroundColor: `${ticketColor}20` }}>
+                                        <div className="flex-[1.2] flex flex-col justify-center items-center px-1" style={{ backgroundColor: `${ticketColor}30` }}>
                                             <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 opacity-70">SEAT</span>
                                             <span className="font-black text-slate-700 text-sm text-center break-words leading-tight px-3">
                                                 {seatDisplay}
