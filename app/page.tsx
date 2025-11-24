@@ -6,7 +6,7 @@ import StarLogClient from '@/components/StarLogClient';
 export default async function Page() {
   // 1. 抓取所有貼文 (按時間倒序)
   const posts = await prisma.post.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: { eventDate: 'desc' },
   });
 
   // 2. 抓取設定 (如果沒有就用 null，Client 端會處理預設值)

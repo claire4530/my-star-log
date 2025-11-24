@@ -18,16 +18,25 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
 
   const currentPosts = posts.filter((p: any) => p.type === activeTab);
 
+// ✨ 修改點：在送出前，把時間轉成標準 UTC 格式，解決時區跑掉的問題
   async function handleSubmit(formData: FormData) {
     setIsUploading(true);
     
-    // ✨ 修改點 1: 票根模式下，組合成 "地點 | 區域 | 座位"
+    // 1. 處理地點組合 (保留你原本的邏輯)
     if (activeTab === 'wallet') {
         const venue = formData.get('venue_input') as string;
         const zone = formData.get('zone_input') as string;
         const seat = formData.get('seat_input') as string;
-        // 組合字串
         formData.set('location', `${venue} | ${zone} | ${seat}`);
+    }
+
+    // 2. 處理日期時區 (新增這段)
+    const rawDate = formData.get('eventDate') as string;
+    if (rawDate) {
+        // 瀏覽器會把 input 的字串 (例如 "2025-10-31T19:00") 視為本地時間
+        // .toISOString() 會把它轉成全球標準時間 (例如 "2025-10-31T11:00:00.000Z")
+        // 這樣伺服器就不會誤會了
+        formData.set('eventDate', new Date(rawDate).toISOString());
     }
 
     await createPost(formData);
