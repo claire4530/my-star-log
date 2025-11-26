@@ -1,22 +1,33 @@
 import { prisma } from '@/lib/prisma';
 import StarLogClient from '@/components/StarLogClient';
+import { auth } from '@clerk/nextjs/server';
 
-// 這是一個 Server Component，它直接在伺服器讀取資料庫
-// 這樣做對 SEO 好，而且速度快
 export default async function Page() {
-  // 1. 抓取所有貼文 (按時間倒序)
+  const { userId } = await auth();
+
+  // 如果沒登入，顯示歡迎畫面
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-pink-50 p-4">
+        <div className="text-center p-8 bg-white rounded-3xl shadow-xl max-w-sm w-full">
+          <h1 className="text-3xl font-bold text-pink-500 mb-2">Orbit 💫</h1>
+          <p className="text-slate-400 text-sm mb-6">專屬於你的追星紀錄</p>
+          <p className="text-slate-600 font-bold animate-pulse">↖ 請點擊左上角登入</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 抓取屬於這個用戶的資料
   const posts = await prisma.post.findMany({
+    where: { userId }, 
     orderBy: { eventDate: 'desc' },
   });
 
-  // 2. 抓取設定 (如果沒有就用 null，Client 端會處理預設值)
+  // 抓取設定 (如果找不到就用預設值)
   const config = await prisma.siteConfig.findUnique({
-    where: { id: 1 },
+    where: { userId },
   });
 
-  return (
-    <main>
-      <StarLogClient posts={posts} config={config} />
-    </main>
-  );
+  return <StarLogClient posts={posts} config={config} />;
 }

@@ -1,11 +1,10 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL") // Vercel 自動生成的環境變數
+  url      = env("POSTGRES_URL")
   directUrl = env("POSTGRES_URL")
 }
 
@@ -17,17 +16,20 @@ model Post {
   type      String
   location  String?
   mood      String?
-  
-  // 新增這行：記錄使用者選擇的日期 (如果沒選就預設為當下)
   eventDate DateTime @default(now())
-  
-  createdAt DateTime @default(now()) // 這行保留，記錄「建立這筆資料的時間」
-
+  createdAt DateTime @default(now())
   color     String?
+  
+  // ✨ 修改點：加上 @default("legacy_user")
+  // 這樣舊的票根會自動被標記為 "legacy_user"，不用刪除！
+  userId    String   @default("legacy_user")
 }
 
 model SiteConfig {
-  id          Int    @id @default(1)
-  themeColor  String @default("#ec4899") // 預設粉色
+  id          Int    @id @default(autoincrement())
+  themeColor  String @default("#ec4899")
   coverImage  String @default("https://images.unsplash.com/photo-1492684223066-81342ee5ff30")
+  
+  // ✨ 修改點：同樣加上預設值，但因為是 unique，我們設為 optional 比較安全，之後再補
+  userId      String?  @unique 
 }

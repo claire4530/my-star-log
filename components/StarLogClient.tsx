@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Heart, Calendar, Settings, MapPin, Plus, Trash2, X, Image as ImageIcon, Clock, Palette, Pencil, Check, Armchair, Ticket } from 'lucide-react';
 import { createPost, updateConfig, deletePost } from '@/app/actions';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function StarLogClient({ posts, config }: { posts: any[], config: any }) {
   const [activeTab, setActiveTab] = useState<'timeline' | 'wallet'>('timeline');
@@ -99,7 +100,21 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
         <div className="relative h-64 shrink-0">
           <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40"></div>
-          
+          <div className="absolute top-4 left-4 z-20">
+            {/* 如果已登入，顯示圓圓的頭像 (點擊可以登出) */}
+            <SignedIn>
+                <UserButton />
+            </SignedIn>
+            
+            {/* 如果沒登入，顯示登入按鈕 */}
+            <SignedOut>
+                <SignInButton mode="modal">
+                    <button className="bg-white/90 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                        登入 Orbit
+                    </button>
+                </SignInButton>
+            </SignedOut>
+        </div>
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             <AnimatePresence mode="popLayout">
                 {!isEditMode && (
