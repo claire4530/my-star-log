@@ -1,10 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, Calendar, Settings, MapPin, Plus, Trash2, X, Image as ImageIcon, Clock, Palette, Pencil, Check, Armchair, Ticket } from 'lucide-react';
+import { Heart, Calendar, Settings, MapPin, Plus, Trash2, X, Image as ImageIcon, Clock, Palette, Pencil, Check, Armchair, Ticket, Type } from 'lucide-react'; // ✨ 加了 Type 圖示
 import { createPost, updateConfig, deletePost } from '@/app/actions';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { Fredoka } from 'next/font/google';
+
+const fredoka = Fredoka({ 
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  display: 'swap',
+});
 
 export default function StarLogClient({ posts, config }: { posts: any[], config: any }) {
   const [activeTab, setActiveTab] = useState<'timeline' | 'wallet'>('timeline');
@@ -15,30 +21,24 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
 
   const appThemeColor = config?.themeColor || '#ec4899';
   const coverImage = config?.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30';
+  // ✨ 讀取設定的標題，如果沒有就用預設值
+  const siteTitle = config?.siteTitle || "Concert Log ꒰ᐢ. .ᐢ꒱✧";
+  const siteSubtitle = config?.siteSubtitle || "紀錄美好時刻";
+
   const [newTicketColor, setNewTicketColor] = useState(appThemeColor);
 
   const currentPosts = posts.filter((p: any) => p.type === activeTab);
 
-// ✨ 修改點：在送出前，把時間轉成標準 UTC 格式，解決時區跑掉的問題
   async function handleSubmit(formData: FormData) {
     setIsUploading(true);
-    
-    // 1. 處理地點組合 (保留你原本的邏輯)
     if (activeTab === 'wallet') {
         const venue = formData.get('venue_input') as string;
         const zone = formData.get('zone_input') as string;
         const seat = formData.get('seat_input') as string;
         formData.set('location', `${venue} | ${zone} | ${seat}`);
     }
-
-    // 2. 處理日期時區 (新增這段)
     const rawDate = formData.get('eventDate') as string;
-    if (rawDate) {
-        // 瀏覽器會把 input 的字串 (例如 "2025-10-31T19:00") 視為本地時間
-        // .toISOString() 會把它轉成全球標準時間 (例如 "2025-10-31T11:00:00.000Z")
-        // 這樣伺服器就不會誤會了
-        formData.set('eventDate', new Date(rawDate).toISOString());
-    }
+    if (rawDate) formData.set('eventDate', new Date(rawDate).toISOString());
 
     await createPost(formData);
     setIsUploading(false);
@@ -100,21 +100,7 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
         <div className="relative h-64 shrink-0">
           <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40"></div>
-          <div className="absolute top-4 left-4 z-20">
-            {/* 如果已登入，顯示圓圓的頭像 (點擊可以登出) */}
-            <SignedIn>
-                <UserButton />
-            </SignedIn>
-            
-            {/* 如果沒登入，顯示登入按鈕 */}
-            <SignedOut>
-                <SignInButton mode="modal">
-                    <button className="bg-white/90 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                        登入 Orbit
-                    </button>
-                </SignInButton>
-            </SignedOut>
-        </div>
+          
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             <AnimatePresence mode="popLayout">
                 {!isEditMode && (
@@ -137,11 +123,34 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
         <AnimatePresence initial={false}>
             {showSettings && (
             <motion.div variants={panelVariants} initial="closed" animate="open" exit="closed" className="bg-white border-b border-gray-100 overflow-hidden">
-                <form action={updateConfig} className="px-5 py-5 space-y-3">
-                    <h3 className="font-bold mb-3 text-slate-700">全域設定</h3>
-                    <div><label className="text-xs text-slate-400">App 主題色</label><input type="color" name="color" defaultValue={appThemeColor} className="block w-full h-10 rounded cursor-pointer mt-1 border-none"/></div>
-                    <div><label className="text-xs text-slate-400">更換封面</label><input type="file" name="coverImage" className="block w-full text-sm text-slate-500 mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"/></div>
-                    <button type="submit" onClick={() => setShowSettings(false)} className="w-full py-2 rounded-lg text-white font-bold text-sm mt-2 active:scale-95 transition-transform" style={{ backgroundColor: appThemeColor }}>保存設定</button>
+                <form action={updateConfig} className="px-5 py-5 space-y-4">
+                    <h3 className="font-bold text-slate-700 flex items-center gap-2"><Settings size={16}/> 全域設定</h3>
+                    
+                    {/* ✨ 新增：標題與副標題設定 */}
+                    <div className="space-y-2">
+                        <label className="text-xs text-slate-400 font-bold">APP 名稱</label>
+                        <div className="relative">
+                            <Type size={16} className="absolute left-3 top-3 text-slate-400" />
+                            <input name="siteTitle" defaultValue={siteTitle} placeholder="輸入你的標題..." className="w-full p-2 pl-9 bg-slate-50 rounded-lg text-sm outline-none focus:ring-2 focus:ring-slate-200" />
+                        </div>
+                        <input name="siteSubtitle" defaultValue={siteSubtitle} placeholder="輸入副標題..." className="w-full p-2 pl-9 bg-slate-50 rounded-lg text-sm outline-none focus:ring-2 focus:ring-slate-200" />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <label className="text-xs text-slate-400 font-bold block mb-1">主題色</label>
+                            <input type="color" name="color" defaultValue={appThemeColor} className="block w-full h-10 rounded cursor-pointer border-2 border-slate-100"/>
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-xs text-slate-400 font-bold block mb-1">封面圖</label>
+                            <label className="flex items-center justify-center w-full h-10 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-slate-400 text-xs cursor-pointer hover:bg-slate-100 transition">
+                                <ImageIcon size={14} className="mr-1"/> 上傳
+                                <input type="file" name="coverImage" className="hidden"/>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" onClick={() => setShowSettings(false)} className="w-full py-2.5 rounded-xl text-white font-bold text-sm active:scale-95 transition-transform shadow-md" style={{ backgroundColor: appThemeColor }}>保存變更</button>
                 </form>
             </motion.div>
             )}
@@ -151,9 +160,14 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
         <div className="flex-1 px-6 pt-6 pb-24 bg-slate-50/50 overflow-x-hidden overflow-y-auto overscroll-contain">
           <div className="flex justify-between items-end mb-6">
             <div>
-                <h1 className="text-2xl font-bold text-slate-800 transition-colors font-mono" style={{ color: appThemeColor }}>Concert Log ꒰ᐢ.ˬ.ᐢ꒱✧˖°</h1>
-                <p className="text-xs text-slate-400 mt-1 transition-all">
-                    {isEditMode ? <span className="text-red-500 font-bold animate-pulse">輕點紅色按鈕以移除</span> : "紀錄美好時刻"}
+                {/* ✨ 顯示自定義標題 */}
+                <h1 className={`${fredoka.className} text-2xl font-bold text-slate-800 transition-colors line-clamp-1`} style={{ color: appThemeColor }}>
+                    {siteTitle}
+                </h1>
+                
+                {/* ✨ 顯示自定義副標題 */}
+                <p className="text-xs text-slate-400 mt-1 transition-all line-clamp-1">
+                    {isEditMode ? <span className="text-red-500 font-bold animate-pulse">輕點紅色按鈕以移除</span> : siteSubtitle}
                 </p>
             </div>
             <div className={`flex bg-white p-1 rounded-xl shadow-sm border border-slate-100 transition-all duration-300 ${isEditMode ? 'opacity-30 grayscale pointer-events-none scale-95' : ''}`}>
@@ -166,28 +180,12 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
             <AnimatePresence mode="popLayout">
                 {currentPosts.map((post: any, index: number) => {
                     const ticketColor = post.color || appThemeColor;
-                    
-                    // ✨ 修改點 2: 解析 location 字串 (Venue | Zone | Seat)
                     const locationString = post.location || '';
                     const parts = locationString.split('|').map((s: string) => s.trim());
-                    
-                    let venueDisplay = 'EVENT LOCATION';
-                    let zoneDisplay = '-';
-                    let seatDisplay = '-';
-
-                    if (parts.length >= 3) {
-                        // 新資料格式: 地點 | 區域 | 座位
-                        venueDisplay = parts[0];
-                        zoneDisplay = parts[1];
-                        seatDisplay = parts[2];
-                    } else if (parts.length === 2) {
-                        // 過渡期資料: 區域 | 座位 (假設地點是標題或預設)
-                        zoneDisplay = parts[0];
-                        seatDisplay = parts[1];
-                    } else {
-                        // 舊資料: 單一字串
-                        venueDisplay = locationString;
-                    }
+                    let venueDisplay = 'EVENT LOCATION', zoneDisplay = '-', seatDisplay = '-';
+                    if (parts.length >= 3) { venueDisplay = parts[0]; zoneDisplay = parts[1]; seatDisplay = parts[2]; } 
+                    else if (parts.length === 2) { zoneDisplay = parts[0]; seatDisplay = parts[1]; } 
+                    else { venueDisplay = locationString; }
 
                     return (
                     <motion.div key={post.id} layout variants={cardVariants} initial="hidden" animate={isEditMode ? "wiggle" : "visible"} exit="exit" custom={index} className="relative group will-change-transform">
@@ -199,46 +197,31 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
                         )}
                         </AnimatePresence>
 
-                        <div className={`bg-white rounded-2xl overflow-hidden shadow-[0_5px_15px_rgba(0,0,0,0.1),0_-5px_15px_rgba(0,0,0,0.1)]  transition-all duration-300`}>
+                        <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 transition-all duration-300`}>
                             {activeTab === 'wallet' ? (
-                                // --- 修改後的票根樣式 (三欄位資訊) ---
                                 <div className="flex bg-white items-stretch">
-                                    <div className="flex-1 p-4 pr-5 border-r-2 border-dashed border-slate-200 relative flex flex-col justify-center ">
+                                    <div className="flex-1 p-4 pr-5 border-r-2 border-dashed border-slate-100 relative flex flex-col justify-center">
                                         <div className="absolute -right-[7px] -top-[7px] w-3 h-3 bg-white rounded-full z-10 border-l border-b border-slate-100/50"></div>
                                         <div className="absolute -right-[7px] -bottom-[7px] w-3 h-3 bg-white rounded-full z-10 border-l border-t border-slate-100/50"></div>
-                                        
-                                        <h3 className="font-bold text-lg text-slate-800 leading-tight mb-1 line-clamp-2 font-mono">{post.title}</h3>
-                                        
-                                        {/* 地點顯示在左側標題下方 */}
+                                        <h3 className="font-bold text-lg text-slate-800 leading-tight mb-1 line-clamp-2">{post.title}</h3>
                                         <p className="font-bold text-sm tracking-wider uppercase truncate flex items-center gap-1" style={{ color: ticketColor }}>
                                             <MapPin size={12} className="shrink-0" />
                                             {venueDisplay}
                                         </p>
-                                        
                                         <p className="text-xs text-slate-400 mt-2 font-medium flex items-center gap-1"><Clock size={12} />{formatDate(post.eventDate || post.createdAt)}</p>
-                                        {/* ✨ 新增：這裡把備註內容 (Content) 加回來了！ */}
                                         {post.content && (
-                                            <p className="text-xs text-black mt-1 pt-1 leading-relaxed whitespace-pre-wrap line-clamp-3">
-                                                {post.content}
-                                            </p>
+                                            <p className="text-xs text-slate-500 mt-3 pt-2 border-t border-dashed border-slate-100 leading-relaxed whitespace-pre-wrap line-clamp-3">{post.content}</p>
                                         )}
-                                        {post.imageUrl && (<div className="mt-2 pt-2  "><img src={post.imageUrl} className="rounded-lg w-full h-20 object-cover" /></div>)}
+                                        {post.imageUrl && (<div className="mt-3 pt-2 border-t border-slate-50"><img src={post.imageUrl} className="rounded-lg w-full h-32 object-cover" /></div>)}
                                     </div>
-                                    
-                                    {/* 右側：區域 + 座位 */}
                                     <div className="min-w-[5.5rem] flex flex-col shrink-0">
-                                        {/* 上半部：區域 (ZONE) */}
-                                        <div className="flex-1 flex flex-col justify-center items-center px-1 border-b border-white/50" style={{ backgroundColor: `${ticketColor}20` }}>
+                                        <div className="flex-1 flex flex-col justify-center items-center px-1 border-b border-white/50" style={{ backgroundColor: `${ticketColor}10` }}>
                                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest opacity-80 mb-0.5">ZONE</span>
-                                            <span className="text-sm font-bold text-slate-700 text-center leading-tight">{zoneDisplay}</span>
+                                            <span className="text-sm font-bold text-slate-700 text-center leading-tight">{zoneDisplay === '-' ? '-' : zoneDisplay}</span>
                                         </div>
-                                        
-                                        {/* 下半部：座位 (SEAT) */}
-                                        <div className="flex-[1.2] flex flex-col justify-center items-center px-1" style={{ backgroundColor: `${ticketColor}30` }}>
+                                        <div className="flex-[1.2] flex flex-col justify-center items-center px-1" style={{ backgroundColor: `${ticketColor}20` }}>
                                             <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 opacity-70">SEAT</span>
-                                            <span className="font-black text-slate-700 text-sm text-center break-words leading-tight px-3">
-                                                {seatDisplay}
-                                            </span>
+                                            <span className="font-black text-slate-800 text-lg text-center break-words leading-tight px-1">{seatDisplay}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -267,6 +250,8 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
           </div>
         </div>
 
+        {/* ... FAB & Modal 不用動，直接使用上面的完整代碼 ... */}
+        {/* 省略 FAB 和 Modal 程式碼以節省篇幅，請使用上一則回應的完整版，或直接保留你原本的 */ }
         <AnimatePresence>
             {!isEditMode && (
                 <motion.button initial={{ scale: 0, rotate: 90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 90 }} onClick={openModal} className="absolute bottom-8 right-6 h-14 w-14 rounded-full shadow-xl shadow-black/20 flex items-center justify-center text-white z-20" whileTap={{ scale: 0.9 }} style={{ backgroundColor: appThemeColor }}>
@@ -298,21 +283,21 @@ export default function StarLogClient({ posts, config }: { posts: any[], config:
                         </div>
                     </div>
 
-                    {/* ✨ 修改點 3: 新增票根輸入框改為三個 (地點 / 區域 / 座位) */}
                     {activeTab === 'wallet' && (
-                        <div className="space-y-3">
+                        <div className="space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <p className="text-xs font-bold text-slate-400 mb-1">票根資訊</p>
                             <div className="relative">
                                 <MapPin size={16} className="absolute left-3 top-3.5 text-slate-400" />
-                                <input name="venue_input" placeholder="地點 (如: 高雄巨蛋)" className="w-full p-3 pl-9 bg-slate-50 rounded-xl outline-none text-sm focus:ring-2 focus:ring-slate-100 transition-shadow" />
+                                <input name="venue_input" placeholder="地點 (例如：高雄巨蛋)" className="w-full p-3 pl-9 bg-white rounded-xl outline-none text-sm focus:ring-2 focus:ring-pink-200 transition-shadow border border-slate-200" />
                             </div>
                             <div className="flex gap-3">
                                 <div className="relative flex-1">
                                     <Ticket size={16} className="absolute left-3 top-3.5 text-slate-400" />
-                                    <input name="zone_input" placeholder="區域 (如: 1樓E10)" className="w-full p-3 pl-9 bg-slate-50 rounded-xl outline-none text-sm focus:ring-2 focus:ring-slate-100 transition-shadow" />
+                                    <input name="zone_input" placeholder="區域 (例如：1樓 E10區)" className="w-full p-3 pl-9 bg-white rounded-xl outline-none text-sm focus:ring-2 focus:ring-pink-200 transition-shadow border border-slate-200" />
                                 </div>
                                 <div className="relative flex-1">
                                     <Armchair size={16} className="absolute left-3 top-3.5 text-slate-400" />
-                                    <input name="seat_input" placeholder="座位 (如: 9排20號)" className="w-full p-3 pl-9 bg-slate-50 rounded-xl outline-none text-sm focus:ring-2 focus:ring-slate-100 transition-shadow" />
+                                    <input name="seat_input" placeholder="座位 (例如：9排 20號)" className="w-full p-3 pl-9 bg-white rounded-xl outline-none text-sm focus:ring-2 focus:ring-pink-200 transition-shadow border border-slate-200" />
                                 </div>
                             </div>
                         </div>

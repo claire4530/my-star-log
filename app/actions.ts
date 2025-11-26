@@ -41,15 +41,27 @@ export async function updateConfig(formData: FormData) {
   const color = formData.get('color') as string;
   const imageFile = formData.get('coverImage') as File;
   
+  // ✨ 新增：獲取標題與副標題
+  const siteTitle = formData.get('siteTitle') as string;
+  const siteSubtitle = formData.get('siteSubtitle') as string;
+  
   const dataToUpdate: any = {};
   if (color) dataToUpdate.themeColor = color;
+  
+  // ✨ 如果有輸入，就更新
+  if (siteTitle) dataToUpdate.siteTitle = siteTitle;
+  if (siteSubtitle) dataToUpdate.siteSubtitle = siteSubtitle;
+
   if (imageFile && imageFile.size > 0) {
-    const blob = await put('cover-image', imageFile, { access: 'public', allowOverwrite: true } as any );
+    const blob = await put('cover-image', imageFile, { 
+        access: 'public', 
+        allowOverwrite: true 
+    } as any); 
     dataToUpdate.coverImage = blob.url;
   }
 
   await prisma.siteConfig.upsert({
-    where: { userId }, // 這裡可能報錯，因為 Schema 改成 optional 了，不過暫時沒關係，下面會修
+    where: { userId }, 
     update: dataToUpdate, 
     create: { userId, ...dataToUpdate },
   });

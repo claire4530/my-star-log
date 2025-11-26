@@ -32,4 +32,6 @@ model SiteConfig {
   
   // ✨ 修改點：同樣加上預設值，但因為是 unique，我們設為 optional 比較安全，之後再補
   userId      String?  @unique 
+  siteTitle    String  @default("Concert Log ꒰ᐢ. .ᐢ꒱✧")
+  siteSubtitle String  @default("紀錄美好時刻")
 }
