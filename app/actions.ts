@@ -18,6 +18,11 @@ export async function createPost(formData: FormData) {
   const eventDate = dateStr ? new Date(dateStr) : new Date();
   const color = formData.get('color') as string;
 
+  // ✨ 新增：獲取票價 (轉成數字，如果沒填就是 0)
+  const price = Number(formData.get('price') || 0);
+  // ✨ Level 4 新增：獲取歌單
+  const setlist = formData.get('setlist') as string;
+  
   let imageUrl = null;
   if (imageFile && imageFile.size > 0) {
     const blob = await put(imageFile.name, imageFile, { access: 'public', addRandomSuffix: true });
@@ -29,6 +34,8 @@ export async function createPost(formData: FormData) {
       title, content, type, location, imageUrl, eventDate, color, 
       mood: '😍',
       userId, // 寫入當前用戶 ID
+      price, // ✨ 寫入資料庫
+      setlist, // ✨ Level 4 寫入資料庫
     },
   });
   revalidatePath('/');

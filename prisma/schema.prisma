@@ -23,6 +23,8 @@ model Post {
   // ✨ 修改點：加上 @default("legacy_user")
   // 這樣舊的票根會自動被標記為 "legacy_user"，不用刪除！
   userId    String   @default("legacy_user")
+  price     Int      @default(0)
+  setlist   String?
 }
 
 model SiteConfig {
